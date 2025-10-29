@@ -1,4 +1,4 @@
-# 🎮 Ronin Isshin (浪人一心)
+# 🎮 Ronin Isshin
 
 세키로를 레퍼런스로 한 2D 횡스크롤 액션 게임
 
