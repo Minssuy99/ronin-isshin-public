@@ -84,13 +84,11 @@ public class EnemyController : MonoBehaviour
         Debug.Log("is Chasing is " + _isChasing);
         Debug.Log("인식 게이지 : " + _awarenessLevel);
 
-        // 게이지가 임계값 이상이면 추격 시작
         if (_awarenessLevel >= awarenessThreshold)
         {
             _isChasing = true;
         }
 
-        // 게이지가 거의 0이면 추격 중단
         if (_awarenessLevel <= 0.5f)
         {
             _awarenessLevel = 0f;
@@ -102,10 +100,8 @@ public class EnemyController : MonoBehaviour
     {
         if (_isChasing && _playerTransform)
         {
-            // 플레이어와의 거리 체크
             float distance = Vector2.Distance(transform.position, _playerTransform.position);
 
-            // stopDistance보다 멀면 이동
             if (distance > stopDistance)
             {
                 _animator.SetBool("isRun", true);
@@ -117,7 +113,6 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
-                // stopDistance 안에 들어오면 멈춤
                 _animator.SetBool("isRun", false);
                 _rb.linearVelocity = new Vector2(0, _rb.linearVelocity.y);
             }
