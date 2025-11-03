@@ -1,4 +1,3 @@
-
 using System;
 using UnityEngine;
 using System.Collections.Generic;
@@ -27,7 +26,7 @@ public class ForegroundFader : MonoBehaviour
 
     private void HandleFade(Collider2D other, float targetAlpha)
     {
-        if (!other.CompareTag("Props")) return;
+        if (!other.CompareTag("Props_Front")) return;
         
         SpriteRenderer sr = other.GetComponent<SpriteRenderer>();
         if (sr == null) return;
@@ -37,6 +36,6 @@ public class ForegroundFader : MonoBehaviour
             StopCoroutine(fadingObjects[sr]);
         }
         
-        fadingObjects[sr] = StartCoroutine(Base_Mng.Instance.UI.Fade(sr, fadeDuration, targetAlpha));
+        fadingObjects[sr] = StartCoroutine(UI_Mng.Instance.Fade(sr, fadeDuration, targetAlpha));
     }
 }
