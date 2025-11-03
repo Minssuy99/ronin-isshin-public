@@ -5,19 +5,18 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 8.0f;
-    [SerializeField] private float jumpForce = 15.0f;
 
     public Vector2 MoveInput { get; private set; }
     
     private Rigidbody2D _rb;
-    private PlayerGroundChecker _playerGroundChecker;
+    private PlayerDash _playerDash;
     private bool _movementEnabled = true;
     private bool _flipEnabled = true;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerDash = GetComponent<PlayerDash>();
 
     }
     private void Update()
@@ -30,7 +29,7 @@ public class PlayerMovement : MonoBehaviour
         {
             _rb.linearVelocity = new Vector2(MoveInput.x * moveSpeed, _rb.linearVelocity.y);
         }
-        else
+        else if (!_playerDash._isDashing)
         {
             _rb.linearVelocity = new Vector2(0f, _rb.linearVelocity.y);
         }
@@ -52,20 +51,13 @@ public class PlayerMovement : MonoBehaviour
     {
         MoveInput = value.Get<Vector2>();
     }
-    void OnJump()
+    public void SetMovementEnabled(bool enable)
     {
-        if (_playerGroundChecker.isGrounded)
-        {
-            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
-        }
-    }
-    public void SetMovementEnabled(bool enabled)
-    {
-        _movementEnabled = enabled;
+        _movementEnabled = enable;
     }
 
-    public void SetFlipEnabled(bool enabled)
+    public void SetFlipEnabled(bool enable)
     {
-        _flipEnabled = enabled;
+        _flipEnabled = enable;
     }
 }
