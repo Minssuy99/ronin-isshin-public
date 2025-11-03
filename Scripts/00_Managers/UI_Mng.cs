@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UI_Mng
+public class UI_Mng : Singleton<UI_Mng>
 { 
     public IEnumerator Fade(Image image, float duration, float targetAlpha)
     {
