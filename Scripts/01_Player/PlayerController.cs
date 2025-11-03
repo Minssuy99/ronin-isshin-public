@@ -13,66 +13,32 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private BoxCollider2D hitBox;
-    [SerializeField] private float moveSpeed = 5.0f;
-    [SerializeField] private float jumpForce = 10.0f;
+    public PlayerState currentState { get; private set; } = PlayerState.Idle;
     
-    private Rigidbody2D rb;
-    private Animator animator;
-    private Vector2 moveInput;
-    private bool isGrounded;
-    private bool isAttacking = false;
+    private PlayerGroundChecker _playerGroundChecker;
+    private PlayerMovement _playerMovement;
+    private PlayerAttack _playerAttack;
 
-    private PlayerState currentState = PlayerState.Idle;
-
-    /* Events */
+    
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponentInChildren<Animator>();
+        _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerMovement = GetComponent<PlayerMovement>();
+        _playerAttack = GetComponent<PlayerAttack>();
     }
     void Update()
     {
         UpdateState();
-        UpdateFlip();
-        UpdateMovementAnimation();
-        UpdateJumpAnimation();
-        
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (!isAttacking && isGrounded)
-            {
-                animator.SetTrigger("isAttack");
-                StartCoroutine(Attack());
-            }
-        }
     }
-    void FixedUpdate()
+
+    private void FixedUpdate()
     {
-        if(!isAttacking)
-           rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
-        else
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        ControlMovement();
     }
-    
-    /* Collision */
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-            isGrounded = true;
-    }
-    void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
-    }
-    
-    /* Function */
+
     void UpdateState()
     {
-        if (isAttacking)
+        if (_playerAttack.isAttacking)
         {
             currentState = PlayerState.Attacking;
             return;
@@ -81,91 +47,42 @@ public class PlayerController : MonoBehaviour
         switch (currentState)
         {
             case PlayerState.Jumping:
-                if (isGrounded)
+                if (_playerGroundChecker.isGrounded)
                 {
                     currentState = PlayerState.Idle;
                 }
                 break;
             case PlayerState.Idle:
-                if (Mathf.Abs(moveInput.x) > 0.1f)
+                if (Mathf.Abs(_playerMovement.MoveInput.x) > 0.1f)
                 {
                     currentState = PlayerState.Moving;
                 }
                 break;
             case PlayerState.Moving:
-                if (Mathf.Abs(moveInput.x) <= 0.1f)
+                if (Mathf.Abs(_playerMovement.MoveInput.x) <= 0.1f)
                 {
                     currentState = PlayerState.Idle;
                 }
                 break;
             case PlayerState.Attacking:
-                if (Mathf.Abs(moveInput.x) > 0.1f)
+                if (Mathf.Abs(_playerMovement.MoveInput.x) > 0.1f)
                 {
                     currentState = PlayerState.Idle;
                 }
                 break;
         }
     }
-    void UpdateFlip()
+    void ControlMovement()
     {
-        if (isAttacking) return;
-        
-        if (moveInput.x > 0)
+        if (_playerAttack.isAttacking)
         {
-            transform.localScale = new Vector2(1, 1);
+            _playerMovement.SetMovementEnabled(false);
+            _playerMovement.SetFlipEnabled(false);
         }
-        else if (moveInput.x < 0)
+        else
         {
-            transform.localScale = new Vector2(-1, 1);
+            _playerMovement.SetMovementEnabled(true);
+            _playerMovement.SetFlipEnabled(true);
         }
-    }
-    void UpdateMovementAnimation()
-    {
-        if (isGrounded)
-        {
-            if(Mathf.Abs(moveInput.x) > 0.1f)
-                animator.SetBool("isRun", true);
-            else
-                animator.SetBool("isRun", false);
-        }
-    }
-    void UpdateJumpAnimation()
-    {
-        animator.SetFloat("yVelocity", rb.linearVelocity.y);
-        
-        animator.SetBool("isGrounded", isGrounded);
-    }
-    
-    void OnMove(InputValue value)
-    {
-        moveInput = value.Get<Vector2>();
-    }
-    void OnJump()
-    {
-        if (isAttacking) return;
-        
-        if (isGrounded)
-        {
-            if(currentState == PlayerState.Idle || currentState == PlayerState.Moving)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            }
-        }
-    }
-    IEnumerator Attack()
-    {
-        isAttacking = true;
-        
-        yield return new WaitForSeconds(0.3f);
-        hitBox.enabled = false;
-        
-        yield return new WaitForSeconds(0.2f);
-        
-        isAttacking = false;
-    }
-
-    public void EnableHitbox()
-    {
-        hitBox.enabled = true;
     }
 }
