@@ -4,27 +4,35 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
+    [Header("히트박스")]
     [SerializeField] private BoxCollider2D[] hitBoxes =  new BoxCollider2D[3];
+
+    [Header("콤보 타이밍 설정")]
     [SerializeField] private float comboWindowDuration = 1.5f;
     [SerializeField] private float attackAnimDuration = 0.27f;
 
     private PlayerGroundChecker _playerGroundChecker;
+    private PlayerStateManager _playerStateManager;
     private Animator _animator;
 
     private int currentCombo = 0;
     private Coroutine comboResetCoroutine;
+    private Coroutine attackCoroutine;
     private const int MAX_COMBO = 3;
-    
+
     public bool isAttacking { get; private set; }
 
     private void Awake()
     {
         _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerStateManager = GetComponent<PlayerStateManager>();
         _animator = GetComponent<Animator>();
     }
 
     void OnAttack()
     {
+        if (!_playerStateManager.CanAttack()) return;
+
         if (!isAttacking && _playerGroundChecker.isGrounded)
         {
             if (currentCombo == 0)
@@ -42,7 +50,7 @@ public class PlayerAttack : MonoBehaviour
     {
         currentCombo = 1;
         _animator.SetInteger("comboCount", currentCombo);
-        StartCoroutine(AttackCoroutine());
+        attackCoroutine = StartCoroutine(AttackCoroutine());
     }
 
     void NextCombo()
@@ -55,12 +63,13 @@ public class PlayerAttack : MonoBehaviour
 
         currentCombo++;
         _animator.SetInteger("comboCount", currentCombo);
-        StartCoroutine(AttackCoroutine());
+        attackCoroutine = StartCoroutine(AttackCoroutine());
     }
 
     IEnumerator AttackCoroutine()
     {
         isAttacking = true;
+        _playerStateManager.IsAttacking = true;
 
         switch (currentCombo)
         {
@@ -80,6 +89,7 @@ public class PlayerAttack : MonoBehaviour
         _animator.SetInteger("comboCount", 0);
         
         isAttacking = false;
+        _playerStateManager.IsAttacking = false;
 
         if (currentCombo < MAX_COMBO)
         {
@@ -123,5 +133,31 @@ public class PlayerAttack : MonoBehaviour
 
         currentCombo = 0;
         _animator.SetInteger("comboCount", 0);
+    }
+
+    public void CancelAttack()
+    {
+        if (attackCoroutine != null)
+        {
+            StopCoroutine(attackCoroutine);
+            attackCoroutine = null;
+        }
+
+        if (comboResetCoroutine != null)
+        {
+            StopCoroutine(comboResetCoroutine);
+            comboResetCoroutine = null;
+        }
+
+        isAttacking = false;
+        _playerStateManager.IsAttacking = false;
+        currentCombo = 0;
+        _animator.SetInteger("comboCount", 0);
+
+        foreach (var hitBox in hitBoxes)
+        {
+            if (hitBox != null)
+                hitBox.enabled = false;
+        }
     }
 }
