@@ -12,6 +12,7 @@ public class PlayerThrow : MonoBehaviour
     private float _throwCooldownLeft;
     private Animator _animator;
     private PlayerGroundChecker _playerGroundChecker;
+    private PlayerStateManager _playerStateManager;
     
     public bool isThrowing { get; private set; }
 
@@ -19,6 +20,7 @@ public class PlayerThrow : MonoBehaviour
     {
         _animator = GetComponent<Animator>();
         _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerStateManager = GetComponent<PlayerStateManager>();
     }
     
     private void Update()
@@ -28,6 +30,8 @@ public class PlayerThrow : MonoBehaviour
 
     void OnThrow()
     {
+        if (!_playerStateManager.CanThrow()) return;
+
         if (_throwEnabled && _throwCooldownLeft <= 0)
         {
             if (_playerGroundChecker.isGrounded && !isThrowing)
@@ -40,6 +44,7 @@ public class PlayerThrow : MonoBehaviour
     IEnumerator ThrowCoroutine()
     {
         isThrowing = true;
+        _playerStateManager.IsThrowing = true;
         
         _animator.SetTrigger("isThrow");
         Sound_Mng.Instance.PlaySFX("Throw");
@@ -47,6 +52,7 @@ public class PlayerThrow : MonoBehaviour
         
         yield return new WaitForSeconds(0.4f);
         isThrowing = false;
+        _playerStateManager.IsThrowing = false;
     }
 
     public void ThrowProjectile()

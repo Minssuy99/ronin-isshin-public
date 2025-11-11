@@ -8,19 +8,22 @@ public class PlayerDash : MonoBehaviour
     [SerializeField] private float dashCooldown = 0.2f;
 
     public bool _isDashing { get; private set; }
+    public float DashTimeLeft => _dashTimeLeft;
     private bool _dashEnabled = true;
     private float _dashTimeLeft;
     private float _dashCooldownLeft;
 
     private Rigidbody2D _rb;
     private Animator _animator;
-    private PlayerMovement _playerMovement;
+    private PlayerGroundChecker _playerGroundChecker;
+    private PlayerStateManager _playerStateManager;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
-        _playerMovement = GetComponent<PlayerMovement>();
+        _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerStateManager = GetComponent<PlayerStateManager>();
     }
 
     private void FixedUpdate()
@@ -47,7 +50,9 @@ public class PlayerDash : MonoBehaviour
 
     void OnDash()
     {
-        if (!_isDashing && _dashEnabled && _dashCooldownLeft <= 0)
+        if (!_playerStateManager.CanDash()) return;
+
+        if (!_isDashing && _playerGroundChecker.isGrounded && _dashEnabled && _dashCooldownLeft <= 0)
         {
             StartDash();
         }
@@ -56,6 +61,7 @@ public class PlayerDash : MonoBehaviour
     void StartDash()
     {
         _isDashing = true;
+        _playerStateManager.IsDashing = true;
         _dashTimeLeft = dashDuration;
         _dashCooldownLeft = dashCooldown;
         _animator.SetTrigger("isDash");
@@ -65,6 +71,7 @@ public class PlayerDash : MonoBehaviour
     void EndDash()
     {
         _isDashing = false;
+        _playerStateManager.IsDashing = false;
     }
 
     public void SetDashEnabled(bool enable)

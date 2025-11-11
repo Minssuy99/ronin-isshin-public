@@ -10,11 +10,15 @@ public class PlayerJump : MonoBehaviour
     
     private Rigidbody2D _rb;
     private PlayerGroundChecker _playerGroundChecker;
+    private PlayerStateManager _playerStateManager; 
+    private PlayerDash _playerDash;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _playerGroundChecker = GetComponent<PlayerGroundChecker>();
+        _playerStateManager = GetComponent<PlayerStateManager>();
+        _playerDash = GetComponent<PlayerDash>();
     }
     
     private void Update()
@@ -24,6 +28,8 @@ public class PlayerJump : MonoBehaviour
     
     void OnJump()
     {
+        if (!_playerStateManager.CanJump()) return;
+
         if (_playerGroundChecker.isGrounded)
         {
             _jumpRequested = true;
@@ -32,6 +38,12 @@ public class PlayerJump : MonoBehaviour
     
     private void HandleJump()
     {
+        if (_playerStateManager.IsDashing && _playerDash.DashTimeLeft > 0.15f)
+        {
+            _jumpRequested = false;
+            return;
+        }
+        
         if (_jumpRequested && _jumpEnabled && _playerGroundChecker.isGrounded)
         {
             _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
