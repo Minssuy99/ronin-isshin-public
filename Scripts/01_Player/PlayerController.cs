@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum PlayerState
+public enum PlayerAnimState
 {
     Idle,
     Moving,
@@ -13,18 +13,26 @@ public enum PlayerState
 
 public class PlayerController : MonoBehaviour
 {
-    public PlayerState currentState { get; private set; } = PlayerState.Idle;
+    public PlayerAnimState currentState { get; private set; } = PlayerAnimState.Idle;
     
+    private PlayerStateManager _playerStateManager;
     private PlayerGroundChecker _playerGroundChecker;
     private PlayerMovement _playerMovement;
     private PlayerAttack _playerAttack;
+    private PlayerJump _playerJump;
+    private PlayerDash _playerDash;
+    private PlayerThrow _playerThrow;
 
     
     private void Awake()
     {
+        _playerStateManager = GetComponent<PlayerStateManager>();
         _playerGroundChecker = GetComponent<PlayerGroundChecker>();
         _playerMovement = GetComponent<PlayerMovement>();
         _playerAttack = GetComponent<PlayerAttack>();
+        _playerJump = GetComponent<PlayerJump>();
+        _playerDash = GetComponent<PlayerDash>();
+        _playerThrow = GetComponent<PlayerThrow>();
     }
     void Update()
     {
@@ -38,51 +46,62 @@ public class PlayerController : MonoBehaviour
 
     void UpdateState()
     {
-        if (_playerAttack.isAttacking)
+        if (_playerStateManager.IsAttacking)
         {
-            currentState = PlayerState.Attacking;
+            currentState = PlayerAnimState.Attacking;
             return;
         }
         
         switch (currentState)
         {
-            case PlayerState.Jumping:
+            case PlayerAnimState.Jumping:
                 if (_playerGroundChecker.isGrounded)
                 {
-                    currentState = PlayerState.Idle;
+                    currentState = PlayerAnimState.Idle;
                 }
                 break;
-            case PlayerState.Idle:
+            case PlayerAnimState.Idle:
                 if (Mathf.Abs(_playerMovement.MoveInput.x) > 0.1f)
                 {
-                    currentState = PlayerState.Moving;
+                    currentState = PlayerAnimState.Moving;
                 }
                 break;
-            case PlayerState.Moving:
+            case PlayerAnimState.Moving:
                 if (Mathf.Abs(_playerMovement.MoveInput.x) <= 0.1f)
                 {
-                    currentState = PlayerState.Idle;
+                    currentState = PlayerAnimState.Idle;
                 }
                 break;
-            case PlayerState.Attacking:
+            case PlayerAnimState.Attacking:
                 if (Mathf.Abs(_playerMovement.MoveInput.x) > 0.1f)
                 {
-                    currentState = PlayerState.Idle;
+                    currentState = PlayerAnimState.Idle;
                 }
                 break;
         }
     }
     void ControlMovement()
     {
-        if (_playerAttack.isAttacking)
+        if (_playerStateManager.IsAttacking ||
+            _playerStateManager.IsDashing ||
+            _playerStateManager.IsThrowing ||
+            _playerStateManager.IsGuarding ||
+            _playerStateManager.IsGuardHit ||
+            _playerStateManager.IsHurt)
         {
             _playerMovement.SetMovementEnabled(false);
             _playerMovement.SetFlipEnabled(false);
+            _playerJump.SetJumpEnabled(false);
+            _playerDash.SetDashEnabled(false);
+            _playerThrow.SetThrowEnabled(false);
         }
         else
         {
             _playerMovement.SetMovementEnabled(true);
             _playerMovement.SetFlipEnabled(true);
+            _playerJump.SetJumpEnabled(true);
+            _playerDash.SetDashEnabled(true);
+            _playerThrow.SetThrowEnabled(true);
         }
     }
 }
