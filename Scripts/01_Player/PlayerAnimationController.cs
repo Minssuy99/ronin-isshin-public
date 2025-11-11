@@ -23,10 +23,10 @@ public class PlayerAnimationController : MonoBehaviour
 
     void UpdateMovementAnimation()
     {
-            if(_playerController.currentState == PlayerState.Moving)
-                _animator.SetBool("isRun", true);
-            else
-                _animator.SetBool("isRun", false);
+        if(_playerController.currentState == PlayerAnimState.Moving)
+            _animator.SetBool("isRun", true);
+        else
+            _animator.SetBool("isRun", false);
     }
     
     void UpdateJumpAnimation()
