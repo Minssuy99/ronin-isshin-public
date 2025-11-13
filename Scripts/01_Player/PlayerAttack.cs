@@ -117,9 +117,10 @@ public class PlayerAttack : MonoBehaviour
 
     public void DisableHitbox()
     {
-        if (currentCombo > 0 && currentCombo <= hitBoxes.Length)
+        foreach (var hitBox in hitBoxes)
         {
-            hitBoxes[currentCombo - 1].enabled = false;
+            if (hitBox != null && hitBox.enabled)
+                hitBox.enabled = false;
         }
     }
 
