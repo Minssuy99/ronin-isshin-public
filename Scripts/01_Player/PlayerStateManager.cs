@@ -20,5 +20,5 @@ public class PlayerStateManager : MonoBehaviour
     public bool CanThrow() => !IsDashing && !IsAttacking && !IsGuarding && !IsHurt;
     public bool CanGuard() => !IsDashing && !IsAttacking && !IsThrowing && !IsHurt;
 
-    public bool CanJump() => !IsGuarding && !IsHurt;
+    public bool CanJump() => !IsAttacking && !IsGuarding && !IsHurt;
 }
